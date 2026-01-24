@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoserResponse {
+public class AuctionResultResponse {
     private String userId;
     private String auctionId;
     private BigDecimal amount;

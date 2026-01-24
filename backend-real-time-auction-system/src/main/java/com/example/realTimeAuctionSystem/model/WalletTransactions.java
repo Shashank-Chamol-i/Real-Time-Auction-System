@@ -26,6 +26,11 @@ public class WalletTransactions {
     @JoinColumn(name = "user_id",nullable = false,foreignKey = @ForeignKey(name = "fk_walletTransactions_user"))
     private Users user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_id",nullable = false,foreignKey = @ForeignKey(name = "fk_walletTransaction_auction"))
+    private Auctions auction;
+
+    @Builder.Default
     @Column(nullable = false,precision = 19,scale = 4)
     private BigDecimal amount = BigDecimal.ZERO;
 

@@ -41,9 +41,13 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
-    @Column(nullable = false,precision = 19,scale = 4)
+    @Builder.Default
+    @Column(nullable = false,precision = 19,scale = 2)
     private BigDecimal walletBalance = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 19,scale = 2)
+    private BigDecimal lockedBalance = BigDecimal.ZERO;
 
     private boolean active;
 

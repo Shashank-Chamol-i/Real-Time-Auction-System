@@ -27,9 +27,11 @@ public class Auctions {
 
     private String itemName;
 
+    @Builder.Default
     @Column(nullable = false,precision = 19,scale = 2)
     private BigDecimal basePrice = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(nullable = false,precision = 19,scale = 2)
     private BigDecimal currentHighestBid = BigDecimal.ZERO;
 
@@ -59,4 +61,8 @@ public class Auctions {
     @OneToMany(mappedBy = "auction",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonIgnore()
     List<AuctionEvents> auctionEventsList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "auction",cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonIgnore()
+    List<WalletTransactions> walletTransactionsList = new ArrayList<>();
 }

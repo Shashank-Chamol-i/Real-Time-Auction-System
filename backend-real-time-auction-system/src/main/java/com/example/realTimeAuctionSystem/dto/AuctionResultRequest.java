@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoserRequest {
+public class AuctionResultRequest {
     private String auctionId;
     private String  winnerId;
 }
