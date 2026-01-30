@@ -37,9 +37,6 @@ public class WalletService {
         Users user = userRepository.findById(request.getUserId()).orElseThrow(()->new NoSuchExist("No Such Users Exist : "));
         Auctions auction = auctionRepository.findById(request.getAuctionId()).orElseThrow(()-> new NoSuchExist("No Such Auction Exist :"));
 
-       if(request.getAmount().compareTo(auction.getCurrentHighestBid())<0){
-            throw new InsufficientAmount("Bid Amount must be greater than current Highest Bid : ");
-       }
 
        if(user.getWalletBalance().compareTo(request.getAmount())<0){
            throw new InsufficientAmount("Insufficient Balance : ");
@@ -51,10 +48,6 @@ public class WalletService {
        user.setWalletBalance(currentAmount);
        user.setLockedBalance(lockedAmount);
        userRepository.save(user);
-
-       auction.setCurrentHighestBid(request.getAmount());
-       auction.setUser(user);
-       auctionRepository.save(auction);
 
         WalletTransactions walletTransaction = WalletTransactions.builder()
                 .amount(request.getAmount())
