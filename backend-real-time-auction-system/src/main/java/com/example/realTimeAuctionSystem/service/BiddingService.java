@@ -1,24 +1,30 @@
 package com.example.realTimeAuctionSystem.service;
 
+import com.example.realTimeAuctionSystem.component.AuctionWebSocketPublisher;
+import com.example.realTimeAuctionSystem.dto.BidPlacedDomainEvent;
 import com.example.realTimeAuctionSystem.dto.DebitForAuctionRequest;
 import com.example.realTimeAuctionSystem.dto.UserBidRequest;
 import com.example.realTimeAuctionSystem.exception.IllegalStateException;
 import com.example.realTimeAuctionSystem.exception.InsufficientAmount;
 import com.example.realTimeAuctionSystem.exception.NoSuchExist;
-import com.example.realTimeAuctionSystem.model.AuctionStatus;
-import com.example.realTimeAuctionSystem.model.Auctions;
-import com.example.realTimeAuctionSystem.model.Bids;
-import com.example.realTimeAuctionSystem.model.Users;
+import com.example.realTimeAuctionSystem.model.*;
+import com.example.realTimeAuctionSystem.repository.AuctionEventRepository;
 import com.example.realTimeAuctionSystem.repository.AuctionRepository;
 import com.example.realTimeAuctionSystem.repository.BidRepository;
 import com.example.realTimeAuctionSystem.repository.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,6 +34,9 @@ public class BiddingService {
     private final AuctionRepository auctionRepository;
     private final WalletService walletService;
     private final UserRepository userRepository;
+    private final AuctionEventRepository auctionEventRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public String placeBid(UserBidRequest userBidRequest){
@@ -46,6 +55,8 @@ public class BiddingService {
 
         Auctions auction = auctionRepository.findById(userBidRequest.getAuctionId())
                 .orElseThrow(()->new NoSuchExist("No Such Auction Exist : "));
+
+         final BigDecimal previousHighestBid = auction.getCurrentHighestBid()==null ? BigDecimal.ZERO : auction.getCurrentHighestBid();
 
         if(auction.getAuctionStatus()!= AuctionStatus.LIVE){
             throw new IllegalStateException("Auction is not currently Live : ");
@@ -81,6 +92,26 @@ public class BiddingService {
         bidRepository.save(bid);
 
 
+        Map<String,Object> payloadMap = new HashMap<>();
+        payloadMap.put("bidId",bid.getId());
+        payloadMap.put("bidderId",user.getId());
+        payloadMap.put("bidAmount",userBidRequest.getAmount());
+        payloadMap.put("bidderName",user.getUsername());
+        payloadMap.put("previousHighestBid",previousHighestBid);
+        payloadMap.put("timestamp",bid.getBidTime());
+
+        JsonNode payloadNode = objectMapper.valueToTree(payloadMap);
+
+        AuctionEvents auctionEvents = AuctionEvents.builder()
+                .auctionEventType(AuctionEventType.BID_PLACED)
+                .createdAt(Instant.now())
+                .payload(payloadNode)
+                .auction(auction)
+                .build();
+
+        auctionEventRepository.save(auctionEvents);
+
+        applicationEventPublisher.publishEvent(new BidPlacedDomainEvent(auctionEvents.getId()));
 
         return "Successfully placed bid amount of "+auctionRequest.getAmount();
     }
