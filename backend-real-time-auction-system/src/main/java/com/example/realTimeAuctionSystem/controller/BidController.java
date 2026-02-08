@@ -1,14 +1,12 @@
 package com.example.realTimeAuctionSystem.controller;
 
+import com.example.realTimeAuctionSystem.dto.AuctionResultRequest;
 import com.example.realTimeAuctionSystem.dto.UserBidRequest;
 import com.example.realTimeAuctionSystem.service.BiddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/bid")
@@ -19,6 +17,12 @@ public class BidController {
     @PostMapping("/place")
     public ResponseEntity<?> placeBid(@RequestBody UserBidRequest request){
         String response = biddingService.placeBid(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/settleAuction")
+    public ResponseEntity<?> settleAuction(@RequestBody AuctionResultRequest request){
+        String response = biddingService.settleAuction(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

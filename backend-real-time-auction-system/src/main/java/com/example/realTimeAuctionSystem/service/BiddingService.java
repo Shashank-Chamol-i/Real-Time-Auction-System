@@ -1,6 +1,6 @@
 package com.example.realTimeAuctionSystem.service;
 
-import com.example.realTimeAuctionSystem.component.AuctionWebSocketPublisher;
+import com.example.realTimeAuctionSystem.dto.AuctionResultRequest;
 import com.example.realTimeAuctionSystem.dto.BidPlacedDomainEvent;
 import com.example.realTimeAuctionSystem.dto.DebitForAuctionRequest;
 import com.example.realTimeAuctionSystem.dto.UserBidRequest;
@@ -114,5 +114,44 @@ public class BiddingService {
         applicationEventPublisher.publishEvent(new BidPlacedDomainEvent(auctionEvents.getId()));
 
         return "Successfully placed bid amount of "+auctionRequest.getAmount();
+    }
+
+    @Transactional
+    public String settleAuction(AuctionResultRequest request){
+        Auctions  auction = auctionRepository.findById(request.getAuctionId()).orElseThrow(()->new NoSuchExist("NO such event Exist"));
+        if(auction.getAuctionStatus()!=AuctionStatus.CLOSED){
+            throw new IllegalStateException("Auction is not currently Live : ");
+        }
+        Users winner = userRepository.findById(request.getWinnerId()).orElseThrow(()->new NoSuchExist("No Such User exist : "));
+
+        if((auction.getCurrentHighestBid().compareTo(auction.getBasePrice()) == 0) && auction.getUser().getId() == null){
+            throw new  IllegalStateException ("Auction Winner not Declared : ");
+        }
+
+        walletService.refundMoneyOfLooser(request);
+        walletService.refundAndSettlementOfWinner(request);
+
+
+        auction.setAuctionStatus(AuctionStatus.SETTLED);
+        Instant completionTime = Instant.now();
+        Map<String , Object> payloadMap = new HashMap<>();
+        payloadMap.put("winnerId",winner.getId());
+        payloadMap.put("auctionId",auction.getId());
+        payloadMap.put("itemName",auction.getItemName());
+        payloadMap.put("settledAt",completionTime);
+
+
+
+
+        JsonNode payloadNode =  objectMapper.valueToTree(payloadMap);
+        AuctionEvents auctionEvents = AuctionEvents.builder()
+                .auctionEventType(AuctionEventType.AUCTION_SETTLED)
+                .createdAt(completionTime)
+                .payload(payloadNode)
+                .auction(auction)
+                .build();
+
+        auctionEventRepository.save(auctionEvents);
+        return "Auction Successfully Settled : ";
     }
 }

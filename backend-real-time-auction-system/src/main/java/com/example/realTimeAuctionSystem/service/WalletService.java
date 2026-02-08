@@ -95,7 +95,7 @@ public class WalletService {
 
     }
 
-    @Transactional
+
     public String refundMoneyOfLooser(AuctionResultRequest auctionResultRequest){
         Auctions auction = auctionRepository.findById(auctionResultRequest.getAuctionId()).orElseThrow(()->new NoSuchExist("No such Auction Exist :"));
         List<AuctionResultResponse> auctionResultResponseList = getAllLoser(auctionResultRequest);
@@ -127,7 +127,7 @@ public class WalletService {
     }
 
 
-    @Transactional
+
     public String refundAndSettlementOfWinner(AuctionResultRequest winnerRequest){
         Auctions auction =  auctionRepository.findById(winnerRequest.getAuctionId()).orElseThrow(()-> new NoSuchExist("No such Auction Exist :"));
         List<AuctionResultResponse> responses =  getWinner(winnerRequest);
