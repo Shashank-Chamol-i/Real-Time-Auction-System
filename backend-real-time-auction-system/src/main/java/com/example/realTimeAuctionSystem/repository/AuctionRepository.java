@@ -10,4 +10,5 @@ import java.util.List;
 public interface AuctionRepository extends JpaRepository<Auctions,String> {
     List<Auctions> findByAuctionStatusAndStartedTimeLessThanEqual(AuctionStatus auctionStatus, Instant startedTime);
     List<Auctions> findByAuctionStatusAndEndTimeLessThanEqual(AuctionStatus auctionStatus,Instant endTime);
+    List<Auctions> findByAuctionStatus(AuctionStatus auctionStatus);
 }

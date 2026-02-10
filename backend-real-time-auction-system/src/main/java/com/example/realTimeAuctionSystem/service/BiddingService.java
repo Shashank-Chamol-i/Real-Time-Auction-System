@@ -116,8 +116,12 @@ public class BiddingService {
         return "Successfully placed bid amount of "+auctionRequest.getAmount();
     }
 
-    @Transactional
-    public String settleAuction(AuctionResultRequest request){
+
+    public void settleAuction(String auctionId, String winnerId){
+        AuctionResultRequest request = new AuctionResultRequest(
+                auctionId,
+                winnerId
+        );
         Auctions  auction = auctionRepository.findById(request.getAuctionId()).orElseThrow(()->new NoSuchExist("NO such event Exist"));
         if(auction.getAuctionStatus()!=AuctionStatus.CLOSED){
             throw new IllegalStateException("Auction is not currently Live : ");
@@ -152,6 +156,5 @@ public class BiddingService {
                 .build();
 
         auctionEventRepository.save(auctionEvents);
-        return "Auction Successfully Settled : ";
     }
 }

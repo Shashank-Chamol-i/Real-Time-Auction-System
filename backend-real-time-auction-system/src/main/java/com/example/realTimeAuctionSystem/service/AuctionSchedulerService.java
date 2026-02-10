@@ -19,6 +19,7 @@ public class AuctionSchedulerService {
 
     private final AuctionRepository auctionRepository;
     private final AuctionLifeCycleService auctionLifeCycleService;
+    private final BiddingService biddingService;
 
     // Runs every 2 seconds
     @Scheduled(fixedDelay = 2000)
@@ -64,5 +65,22 @@ public class AuctionSchedulerService {
                 log.error("Failed to close auction {} ",auction.getId(),e);
             }
         }
+    }
+
+    @Scheduled(fixedDelay = 50000)
+    @Transactional
+    public void autoSettle(){
+         List<Auctions> auctions =    auctionRepository.findByAuctionStatus(AuctionStatus.CLOSED);
+
+         for(Auctions auction : auctions){
+             String auctionId = auction.getId();
+             String winnerId = auction.getUser().getId();
+             try{
+                 log.info("Settling the Auction with id {} : ",auction.getId());
+                 biddingService.settleAuction(auctionId,winnerId);
+             } catch (RuntimeException e) {
+                 throw new RuntimeException(e);
+             }
+         }
     }
 }

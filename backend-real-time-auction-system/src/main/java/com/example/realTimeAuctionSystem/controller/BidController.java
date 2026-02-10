@@ -20,9 +20,5 @@ public class BidController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/settleAuction")
-    public ResponseEntity<?> settleAuction(@RequestBody AuctionResultRequest request){
-        String response = biddingService.settleAuction(request);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+    
 }
