@@ -1,5 +1,6 @@
 package com.example.realTimeAuctionSystem.service;
 
+import com.example.realTimeAuctionSystem.dto.AuthenticationRequest;
 import com.example.realTimeAuctionSystem.dto.RegisterRequest;
 import com.example.realTimeAuctionSystem.exception.EmailAlreadyExist;
 import com.example.realTimeAuctionSystem.exception.IllegalStateException;
@@ -7,6 +8,7 @@ import com.example.realTimeAuctionSystem.model.Role;
 import com.example.realTimeAuctionSystem.model.Users;
 import com.example.realTimeAuctionSystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +18,7 @@ import java.math.BigDecimal;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public String register(RegisterRequest request){
         if(userRepository.findByEmail(request.getEmail()).isPresent()){
@@ -28,7 +31,7 @@ public class UserService {
         Users user = Users.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .passwordHash(request.getPassword())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .walletBalance(request.getWalletBalance().add(BigDecimal.ZERO))
                 .active(true)
@@ -38,4 +41,6 @@ public class UserService {
 
         return savedUser.getUsername()+": Successfully Register \n\nBidderId : "+savedUser.getId();
     }
+
+
 }

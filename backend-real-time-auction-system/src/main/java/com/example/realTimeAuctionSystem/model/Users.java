@@ -9,10 +9,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -21,7 +25,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Users {
+public class Users  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -68,4 +72,8 @@ public class Users {
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonIgnore()
     List<Auctions> auctionsList = new ArrayList<>();
+
+
+
+
 }
